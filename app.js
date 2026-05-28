@@ -795,4 +795,7 @@ document.getElementById("simulator").style.display = "none";
 state.dirty = {};
 render();
 
+// auto-open help popup
+document.getElementById("infoModal").style.display = "flex";
+
 });
