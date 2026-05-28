@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Cubetto+ Code Uploader</title>
+<link rel="icon" href="./assets/logo/favicon.png" sizes="32x32">
+<link rel="icon" type="image/svg+xml" href="./assets/robot/robot.svg">
+
+<style>
+body{
+  margin:0;
+  font-family:Arial, sans-serif;
+  background:#f5f2ea;
+  color:#0b3d5c;
+}
+
+.block.locked .block-right{
+  filter: blur(2px);
+  opacity:0.5;
+}
+
+.preview-inline{
+  font-size:13px;
+  font-weight:600;
+  opacity:0.7;
+}
+
+.play-btn{
+  padding:6px 10px;
+  border-radius:10px;
+  border:none;
+  background:#2e9d45;
+  color:white;
+  cursor:pointer;
+  font-weight:bold;
+}
+
+.block-info{
+  position:relative;
+  z-index:2;
+}
+
+.block.locked .block-info{
+  background: rgba(255,255,255,0.9);
+  padding: 10px;
+  border-radius: 14px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.block.locked .block-right{
+  filter: blur(2px);
+  opacity:0.5;
+  pointer-events:none;
+}
+
+.preview-inline{
+  font-size:13px;
+  font-weight:600;
+  opacity:0.7;
+  text-align:right;
+}
+
+.play-btn{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+
+  padding:6px 12px;
+  border-radius:999px;
+
+  border:none;
+  background:#2e9d45;
+  color:white;
+
+  cursor:pointer;
+  font-weight:600;
+  font-size:13px;
+
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+
+.play-btn:hover{
+  transform: translateY(-1px);
+  background:#34b055;
+}
+
+.play-btn:active{
+  transform: scale(0.97);
+}
+
+/* ===== TOP BAR ===== */
+
+.topbar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:25px 40px;
+  background:#f5f2ea; /* 🔥 stejné jako body */
+  box-shadow:none; 
+}
+
+.brand{
+  display:flex;
+  align-items:center;
+  gap:20px;
+}
+
+.robot-top{
+  height:70px;
+}
+
+.title-group h1{
+  margin:0;
+  font-size:26px;
+  font-weight:700;
+}
+
+.subtitle{
+  font-size:14px;
+  opacity:0.6;
+}
+
+/* ===== STATUS ===== */
+
+.status{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  font-weight:600;
+}
+
+.status-dot{
+  width:10px;
+  height:10px;
+  border-radius:50%;
+  background:#d60000;
+}
+
+.status.connected .status-dot{
+  background:#2e9d45;
+}
+
+/* ===== ACTION BUTTONS ===== */
+
+.actions{
+  display:flex;
+  gap:15px;
+  margin-left:30px;
+}
+
+.right-panel{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  gap:10px;
+}
+
+.actions button{
+  padding:10px 18px;
+  border-radius:10px;
+  border:none;
+  cursor:pointer;
+  font-weight:600;
+}
+
+#upload{ background:#0b3d5c; color:white; }
+#defaults{ background:#ccc; }
+#reset{ background:#d60000; color:white; }
+#connect{background:#2e9d45; color:white; }
+
+/* ===== GRID ===== */
+
+.container{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:30px;
+  padding:40px;
+}
+
+/* ===== BLOCK CARD ===== */
+
+.block{
+  background:white;
+  border-radius:14px;
+  padding:20px;
+  box-shadow:0 4px 12px rgba(0,0,0,0.05);
+  margin-bottom:20px;
+  min-height:100px;
+}
+
+.block-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.block-info{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.block-name{
+  font-weight:bold;
+  font-size:18px;
+}
+
+.block-icon{
+  width:85px;
+}
+
+/* ===== SEQUENCE ===== */
+
+.sequence{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  max-height:160px;
+  overflow-y:auto;
+  align-items:flex-start;   /* změna */
+}
+
+.step{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  justify-content:center;
+}
+
+/* ===== DROPDOWN ===== */
+
+.selector-dropdown{
+  padding:8px 12px;
+  border-radius:8px;
+  border:1px solid #0b3d5c;
+  font-weight:600;
+}
+
+/* ===== PLUS / MINUS ===== */
+
+.btn-minus{
+  padding:6px 14px;
+  border-radius:8px;
+  border:1px solid #999;
+  background:#f0f0f0;
+  cursor:pointer;
+  font-weight:bold;
+}
+
+.btn-plus{
+  padding:6px 14px;
+  border-radius:8px;
+  border:1px solid #2e9d45;
+  background:#2e9d45;
+  color:white;
+  cursor:pointer;
+  font-weight:bold;
+}
+
+.btn-remove{
+  margin-left:15px;
+  border:1px solid #d60000;
+  color:#d60000;
+  background:white;
+  padding:4px 10px;
+  border-radius:8px;
+  cursor:pointer;
+  font-size:14px;
+}
+
+.add-step{
+  padding:8px 20px;
+  border:1px solid #0b3d5c;
+  background:white;
+  border-radius:8px;
+  cursor:pointer;
+  font-weight:600;
+}
+
+/* ===== SPEED ===== */
+
+.speed-control{
+  display:flex;
+  gap:10px;
+}
+
+.speed-option{
+  padding:10px 20px;
+  border-radius:10px;
+  border:1px solid #0b3d5c;
+  cursor:pointer;
+  font-weight:bold;
+}
+
+.speed-option.active{
+  background:#0b3d5c;
+  color:white;
+}
+
+/* ===== MODAL ===== */
+
+.modal{
+  display:none;
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background:rgba(0,0,0,0.5);
+  justify-content:center;
+  align-items:center;
+
+  z-index:9999; /* 🔥 přidej toto */
+}
+
+.modal-content{
+  background:white;
+  padding-top:50px;
+  padding:30px;
+  border-radius:14px;
+  width:600px;
+  max-height:80vh;
+  overflow:auto;
+  position:relative;
+  z-index:10000;
+}
+
+.modal-close{
+  position:absolute;
+  top:15px;
+  right:15px;
+  background:none;
+  border:none;
+  font-size:22px;
+  cursor:pointer;
+  color:#0b3d5c;
+  font-weight:bold;
+}
+
+.modal-close:hover{
+  opacity:0.6;
+}
+
+.modal-actions{
+  margin-top:20px;
+  display:flex;
+  justify-content:space-between; /* 🔥 rozdělení vlevo / vpravo */
+  align-items:center;
+}
+
+#print{
+  padding:10px 18px;
+  border-radius:8px;
+
+  border:2px solid #0b3d5c;
+  background:white;
+  color:#0b3d5c;
+
+  cursor:pointer;
+  font-weight:600;
+}
+
+#print:hover{
+  background:#f0f4f8;
+}
+
+#confirmUpload{
+  padding:10px 18px;
+  background:#0b3d5c;
+  color:white;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+}
+
+.preview-item{
+  display:flex;
+  gap:14px;
+  align-items:flex-start;
+  margin-bottom:18px;
+  padding-bottom:14px;
+  border-bottom:1px solid #eee;
+}
+
+.preview-icon{
+  width:36px;
+  height:36px;
+  object-fit:contain;
+  margin-top:2px;
+}
+
+.preview-content{
+  flex:1;
+}
+
+.preview-steps{
+  font-weight:600;
+  margin-bottom:4px;
+  font-size:16px;
+}
+
+.preview-code{
+  font-family:monospace;
+  font-size:13px;
+  font-weight:600;
+  letter-spacing:0.5px;
+  background:#f3f3f3;
+  padding:6px 8px;
+  border-radius:6px;
+  display:inline-block;
+}
+
+/* HEX coloring */
+
+.hex-fixed{
+  color:#999;
+}
+
+.hex-module{
+  color:#1e88e5;
+  font-weight:bold;
+}
+
+.hex-command{
+  color:#2e9d45;
+  font-weight:bold;
+}
+
+.hex-repeat{
+  color:#8e24aa;
+  font-weight:bold;
+}
+
+/* ===== FOOTER ===== */
+
+footer{
+  text-align:right;
+  padding:20px;
+  background:white;
+}
+
+.footer-logo{
+  height:25px;
+}
+
+.block {
+  position: relative;
+  overflow: hidden;
+}
+
+/* 🔥 blur jen na pozadí */
+.block.locked::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+
+  backdrop-filter: blur(3px);
+  background: rgba(255,255,255,0.5);
+
+  pointer-events: none;
+}
+
+.modify-btn{
+  padding:6px 12px;
+  border-radius:8px;
+  border:none;
+  background:#0b3d5c;
+  color:white;
+  cursor:pointer;
+
+  width:120px;        /* 🔥 pevná šířka */
+  text-align:center;
+
+  margin-top:10px;
+
+  position:relative;
+  z-index:2;
+}
+
+
+.block.locked{
+  cursor:pointer;
+}
+
+.block.locked .modify-btn{
+  opacity:1 !important;
+  position:relative;
+  z-index:5;
+}
+
+#simulator {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+}
+
+#simulator {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+}
+
+/* ===== SIMULATOR GRID CLEAN ===== */
+
+#simulator{
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+}
+
+#grid{
+  display: grid;
+  grid-template-columns: repeat(5, 50px);
+  grid-template-rows: repeat(5, 50px);
+  gap: 6px;
+
+  padding: 10px;
+  background: #e5e5e5;
+  border-radius: 16px;
+
+  width: max-content;
+}
+
+.cell{
+  width: 50px;
+  height: 50px;
+  background: white;
+  border-radius: 10px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.robot{
+  width: 70%;
+  height: 70%;
+  background: #8B5A2B; /* hnědá */
+
+  border-radius: 8px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  transition: transform 0.25s ease;
+}
+
+.play-btn{
+  padding:6px 10px;
+  border-radius:10px;
+  border:none;
+  background:#3aa35c;
+  color:white;
+  cursor:pointer;
+  font-weight:bold;
+}
+
+.robot-arrow{
+  position: relative;
+
+  width: 36px;   /* 🔥 bylo 24px */
+  height: 44px;  /* 🔥 bylo 30px */
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  margin:auto;
+
+  transition: transform 0.3s ease;
+}
+
+/* tělo */
+.robot-arrow::before{
+  content:"";
+  width: 8px;     /* 🔥 bylo 6px */
+  height: 26px;   /* 🔥 bylo 18px */
+  background: #8B5A2B;
+  border-radius: 4px;
+}
+
+/* hlavička */
+.robot-arrow::after{
+  content:"";
+  position:absolute;
+  top:0;
+
+  border-left: 14px solid transparent;   /* 🔥 bylo 10px */
+  border-right: 14px solid transparent;
+  border-bottom: 18px solid #8B5A2B;     /* 🔥 bylo 12px */
+}
+
+/* ===== SIMULATOR MODAL ===== */
+
+.simulator-modal{
+  display:none;
+
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+
+  background:rgba(0,0,0,0.5);
+
+  justify-content:center;
+  align-items:center;
+
+  z-index:9999;
+}
+
+.simulator-content{
+  background:white;
+  padding:25px;
+  border-radius:16px;
+
+  position:relative;
+}
+
+#simClose{
+  position:absolute;
+  top:-30px;
+  right:-30px;
+
+  background:none;
+  border:none;
+  box-shadow:none;
+
+  font-size:22px;
+  font-weight:bold;
+
+  cursor:pointer;
+  color:#0b3d5c;
+}
+
+.loading::after{
+  content:" ⏳";
+}
+
+@media print{
+
+  body *{
+    visibility: hidden;
+  }
+
+  #modal, #modal *{
+    visibility: visible;
+  }
+
+  #modal{
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background:white;
+  }
+
+  .modal-actions{
+    display:none;
+  }
+
+  .modal-close{
+    display:none;
+  }
+
+  /* 🔥 schovej simulátor */
+  #simulator{
+    display:none !important;
+  }
+
+}
+
+.footer{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+
+  padding:24px 40px;
+  background:#a03544;
+  color:white;
+
+  margin-top:30px;
+}
+
+/* LEFT */
+.footer-left{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  gap:6px;
+
+  font-size:13px;
+}
+
+/* LINK (hlavní prvek) */
+.footer-link{
+  font-size:15px;
+  font-weight:700;
+  color:white;
+  text-decoration:none;
+  letter-spacing:0.3px;
+}
+
+.footer-link:hover{
+  text-decoration:underline;
+}
+
+/* COPYRIGHT */
+.footer-copy{
+  opacity:0.9;
+}
+
+/* ADDRESS (méně důležité) */
+.footer-address{
+  opacity:0.65;
+  font-size:12px;
+}
+
+/* RIGHT */
+.footer-right{
+  display:flex;
+  align-items:center;
+  padding-right:40px;
+}
+
+/* LOGO */
+.footer-logo{
+  height:32px;      /* 🔥 PNG může být větší */
+  opacity:0.95;
+
+  display:block;
+}
+
+.footer-logo:hover{
+  opacity:1;
+}
+
+.info-btn{
+  width:34px;
+  height:34px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center; /* 🔥 vycentrování ? */
+
+  border-radius:50%;
+  border:1.5px solid #0b3d5c;
+
+  background:white;
+  color:#0b3d5c;
+
+  font-weight:700;
+  font-size:15px;
+
+  cursor:pointer;
+
+  box-shadow: 0 2px 6px rgba(0,0,0,0.12); /* 🔥 víc viditelné */
+}
+
+.info-btn:hover{
+  background:#0b3d5c;
+  color:white;
+  transform: scale(1.08);
+}
+
+.info-content{
+  max-width:500px;
+}
+
+.info-text{
+  font-size:14px;
+  line-height:1.6;
+  margin-top:10px;
+}
+
+</style>
+</head>
+
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <img src="./assets/robot/robot.svg" class="robot-top">
+    <div class="title-group">
+      <h1>Cubetto+ Code Uploader</h1>
+      <div class="subtitle">Configure custom block behaviour and upload to Cubetto</div>
+    </div>
+  </div>
+
+<div class="right-panel">
+  <div class="actions">
+    <button id="connect">Connect</button>
+    <button id="infoBtn" class="info-btn">?</button>
+    <button id="upload">Upload new settings</button>
+    <button id="defaults">Upload default settings</button>
+  
+  </div>
+
+  <div class="status" id="connectionStatus">
+    <div class="status-dot"></div>
+    Not connected
+  </div>
+</div>
+</header>
+
+<div id="simulator" class="simulator-modal" style="display:none;">
+  <div class="simulator-content">
+
+    <button id="simClose">✕</button>
+
+    <div id="grid"></div>
+
+  </div>
+</div>
+
+<div class="container">
+  <div id="left"></div>
+  <div id="right"></div>
+</div>
+
+<div id="modal" class="modal">
+  <div class="modal-content">
+    <button class="modal-close" id="modalClose">✕</button>
+
+    <h2>Upload preview</h2>
+
+    <div id="preview"></div>
+
+    <div class="modal-actions">
+      <button id="print">Print</button>
+      <button id="confirmUpload">Upload</button>
+    </div>
+  </div>
+</div>
+
+<div id="infoModal" class="modal">
+  <div class="modal-content info-content">
+
+    <button class="modal-close" id="infoClose">✕</button>
+
+    <h2>How to upload new code to your Cubetto+:</h2>
+
+    <div class="info-text">
+
+      <p>• Make sure the Cubetto robot is turned <b>OFF</b></p>
+      <p>• Turn <b>ON</b> the control board, then hold the blue button until the board starts blinking</p>
+      <p>• Click <b>Connect</b> and select <b>PRIMO INTERFACE</b> in the popup window</p>
+
+      <hr>
+
+      <p><strong>1.</strong> Click <b>Modify</b> on any block to edit its behaviour.</p>
+      <p><strong>2.</strong> Add steps and define the sequence.</p>
+      <p><strong>3.</strong> Use <b>Simulator</b> to preview the movement.</p>
+      <p><strong>4.</strong> Click <b>Upload new settings</b> to send to Cubetto.</p>
+      <p><strong>5.</strong> Or upload default settings anytime.</p>
+
+    </div>
+
+  </div>
+</div>
+
+<footer class="footer">
+
+  <div class="footer-left">
+    <a href="https://primotoys.com/" target="_blank" class="footer-link">
+      primotoys.com
+    </a>
+
+    <div class="footer-copy">
+      © 2026 MORAVIA Consulting spol. s r.o.
+    </div>
+
+    <div class="footer-address">
+      Olomoucká 83, 62100 Brno, Czech Republic
+    </div>
+  </div>
+
+  <div class="footer-right">
+    <img src="./assets/logo/logo.png" class="footer-logo">
+  </div>
+
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>
